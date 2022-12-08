@@ -27,7 +27,7 @@ services:
 
     api:
         image: openmrs:1.0
-        build: .
+        #build: .
         depends_on:
             - db
         ports:
