@@ -8,7 +8,6 @@ RUN git clone https://github.com/tarunkumarpendem/openmrs-core.git && \
 FROM tomcat:8-jdk11
 LABEL application="openmrs"
 LABEL owner="me"
-COPY --from=build /openmrs-core/webapp/target/openmrs.war
-/usr/local/tomcat/webapps/openmrs.war
+COPY --from=build /openmrs-core/webapp/target/openmrs.war /usr/local/tomcat/webapps/openmrs.war
 EXPOSE 8080
 CMD ["catalina.sh", "run"]
