@@ -1,22 +1,18 @@
-FROM tomcat:9-jdk11 as tarun
+FROM maven:3-jdk-11 as build
 ARG branch=openmrs
-RUN apt update \
-    && apt install git -y \
-    && apt install maven -y \
-    && git clone https://github.com/tarunkumarpendem/openmrs-core.git \
-    && cd openmrs-core \  
-    && git checkout ${branch} \
-    && mvn clean install \ 
-    && cp -r /usr/local/tomcat/openmrs-core/webapp/target /usr/local/tomcat/webapps/openmrs.war 
-EXPOSE 8080
-CMD ["catalina.sh", "run"]    
+RUN git clone https://github.com/tarunkumarpendem/openmrs-core.git && \
+    cd openmrs-core && \
+    git checkout ${branch} && \
+    mvn package
 
-
-FROM mysql:8.0.31 
+#war file location: /openmrs-core/webapp/target/openmrs.war
+FROM tomcat:8-jdk11
 ENV MYSQL_DATABASE="mysql-db"
 ENV MYSQL_ROOT_PASSWORD="rootroot"
 ENV MYSQL_USER="mysql-user"
 ENV MYSQL_PASSWORD="mysql-password"
-COPY --from=tarun /usr/local/tomcat/webapps/openmrs.war .
-EXPOSE 3306
-CMD [ "mysqld" ]
+LABEL application="openmrs"
+LABEL owner="Tarun"
+COPY --from=build /openmrs-core/webapp/target/openmrs.war /usr/local/tomcat/webapps/openmrs.war
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
