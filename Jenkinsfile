@@ -6,9 +6,9 @@ pipeline{
         choice(name: 'Branch_name', choices: ['master', 'openmrs', 'dev', 'qa', 'uat', 'prod'], description: 'selecting branch')
     }
     stages{
-        stage('clone'){
-            steps{
-                scipt{
+        stage('build'){
+            steps {
+                script{
                     def REG = "tarunkumarpendem"
                     def default_image_name = "openmrs"
                     def default_image_tag = "1.0"
@@ -77,7 +77,7 @@ pipeline{
                           $env.BUILD_ID"""
         }
         success{
-            junit '**/surefire-reports/*.xml'
+            //junit '**/surefire-reports/*.xml'
             echo 'build is success'
             mail to: 'tarunkumarpendem22@gmail.com',
                  subject: 'Job summary',
