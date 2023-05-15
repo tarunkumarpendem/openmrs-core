@@ -126,6 +126,11 @@ resource "aws_instance" "kubectl" {
     "Environment" = var.instance_details.instance_tags[1]
     "Purpose" = var.instance_details.instance_tags[2] 
   }
+  ebs_block_device {
+    volume_size = var.instance_details.instance_volume_size
+    volume_type = var.instance_details.instance_volume_type
+    device_name = var.instance_details.volume_device_name
+  }
   provisioner "remote-exec" {
     connection {
       user = var.instance_details.provisioner_user_name
@@ -141,10 +146,13 @@ resource "aws_instance" "kubectl" {
       "kubectl apply -k github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master",
       "curl -fsSL https://get.docker.com -o get-docker.sh",
       "sh get-docker.sh",
-      "sudo usermod -aG docker ubuntu"
+      "sudo usermod -aG docker ubuntu",
+      "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3",
+      "chmod 700 get_helm.sh",
+      "./get_helm.sh",
+      "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 116710275660.dkr.ecr.us-east-1.amazonaws.com"
       # "wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml to deploy namespace, serviceaccounts, configmap, clusterroles, clusterrolebindings, roles, rolebindings, services, deployments, ingressclasses, and validatingwebhookconfigurations",
       # "kubectl apply -f deploy.yaml",
-      # aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 116710275660.dkr.ecr.us-east-1.amazonaws.com
      ]
   }
   depends_on = [ 
@@ -290,3 +298,81 @@ resource "aws_eks_node_group" "eks_node_group1" {
 # aws eks update-nodegroup-version --cluster-name dev_eks_cluster_For_Dev --nodegroup-name dev_node_group_1 --region us-east-1
 # wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml to deploy namespace, serviceaccounts, configmap, clusterroles, clusterrolebindings, roles, rolebindings, services, deployments, ingressclasses, and validatingwebhookconfigurations
 # kubectl apply -f deploy.yaml
+# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+# chmod 700 get_helm.sh
+# ./get_helm.sh
+
+
+########################################
+# Ingress Installation steps using helm
+########################################
+
+# helm repo add nginx-stable https://helm.nginx.com/stable
+# helm repo update
+# helm upgrade --install ingress-nginx ingress-nginx \
+#              --repo https://kubernetes.github.io/ingress-nginx \
+#              --namespace ingress-nginx --create-namespace
+
+
+
+########################
+# Ingress Sample Output
+########################
+
+# NAME: ingress-nginx
+# LAST DEPLOYED: Mon May 15 08:27:47 2023
+# NAMESPACE: ingress-nginx
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+# NOTES:
+# The ingress-nginx controller has been installed.
+# It may take a few minutes for the LoadBalancer IP to be available.
+# You can watch the status by running 'kubectl --namespace ingress-nginx get services -o wide -w ingress-nginx-controller'
+
+# An example Ingress that makes use of the controller:
+#   apiVersion: networking.k8s.io/v1
+#   kind: Ingress
+#   metadata:
+#     name: example
+#     namespace: foo
+#   spec:
+#     ingressClassName: nginx
+#     rules:
+#       - host: www.example.com
+#         http:
+#           paths:
+#             - pathType: Prefix
+#               backend:
+#                 service:
+#                   name: exampleService
+#                   port:
+#                     number: 80
+#               path: /
+#     # This section is only required if TLS is to be enabled for the Ingress
+#     tls:
+#       - hosts:
+#         - www.example.com
+#         secretName: example-tls
+
+# If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+#   apiVersion: v1
+#   kind: Secret
+#   metadata:
+#     name: example-tls
+#     namespace: foo
+#   data:
+#     tls.crt: <base64 encoded cert>
+#     tls.key: <base64 encoded key>
+#   type: kubernetes.io/tls
+
+
+#################################
+# Ingreess verifying commands
+#################################
+
+# kubectl --namespace ingress-nginx get services -o wide -w ingress-nginx-controller
+# kubectl get ingress
+# kubectl get svc
+

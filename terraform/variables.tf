@@ -75,7 +75,9 @@ variable "instance_details" {
       instance_tags = list(string)
       provisioner_user_name = string
       provisioner_connection_type = string
-
+      instance_volume_size = string
+      instance_volume_type = string
+      volume_device_name = string
     })
     default = {
       ami_id = "ami-0e625d9a5a1694cec"
@@ -85,6 +87,9 @@ variable "instance_details" {
       instance_tags = [ "kubectl", "dev", "for_eks_kubectl" ]
       provisioner_user_name = "ubuntu"
       provisioner_connection_type = "ssh"
+      instance_volume_size = 30
+      instance_volume_type = "gp2"
+      volume_device_name = "/dev/sda1"
     }
     description = "Creating an instance for configuring Kubectl"
 }
