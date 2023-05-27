@@ -80,9 +80,9 @@ variable "instance_details" {
       volume_device_name = string
     })
     default = {
-      ami_id = "ami-0e625d9a5a1694cec"
+      ami_id = "ami-0ea7ad84ccd2d2208"
       key_pair = "standard"
-      instance_type = "t2.small"
+      instance_type = "t2.medium"
       enable_public_ip_address = true
       instance_tags = [ "kubectl", "dev", "for_eks_kubectl" ]
       provisioner_user_name = "ubuntu"
@@ -103,7 +103,7 @@ variable "cluster_info" {
     })
     default = {
       cluster_name = "dev_eks_cluster_For_Dev" 
-      cluster_version = "1.24" 
+      cluster_version = "1.26" 
       eks_cluster_tags = [ "dev_cluster", "dev" ]
     }
     description = "EKS Cluster info"

@@ -101,7 +101,7 @@ pipeline{
     stages{
         stage('vcs'){
             agent{
-                label ''
+                label 'docker_agent'
             }
             steps{
                 git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
@@ -110,7 +110,7 @@ pipeline{
         }
         stage('docker'){
             agent{
-                label ''
+                label 'docker_agent'
             }
             steps{
                 script{
@@ -169,21 +169,46 @@ pipeline{
                 }
             }
         }
+        stage('terraform_vcs'){
+            agent{
+                label 'terraform_agent'
+            }
+            steps{
+                git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
+                    branch: 'openmrs'
+            }
+        }
         stage('eks_cluster'){
             agent{
-                label ''
+                label 'terraform_agent'
             }
-            sh """
-                 cd terraform
-                 terraform init
-                 terraform apply -auto-approve
-            """
-        }   
+            steps{
+                sh """
+                    cd terraform
+                    terraform init
+                    terraform apply -auto-approve
+                """
+            }
+        } 
+        stage('k8s_vcs'){
+            agent{
+                label 'kubectl_agent'
+            }
+            steps{
+                git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
+                    branch: 'openmrs'
+            }
+        } 
         stage('deploy'){
-            sh """
-                  cd Manifests
-                  kubectl apply -f .
-            """    
+            agent{
+                label 'kubectl_agent'
+            } 
+            steps{
+                sh """
+                    cd Manifests
+                    kubectl apply -f .
+                """  
+            }  
         }
     }
     post{

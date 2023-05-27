@@ -1,15 +1,15 @@
-# resource "aws_ecr_repository" "openmrs_ecr" {
-#     count = "${terraform.workspace == "dev" ? 1 : 0}" 
-#     name = var.ecr_details.registry_name
-#     image_tag_mutability = "IMMUTABLE"
-#     image_scanning_configuration {
-#       scan_on_push = var.ecr_details.scan_on_push
-#     }
-#     tags = {
-#       "Name" = var.ecr_details.registry_tags[0]
-#       "Environment"  = var.ecr_details.registry_tags[1]
-#     }
-# }
+resource "aws_ecr_repository" "openmrs_ecr" {
+    count = "${terraform.workspace == "dev" ? 1 : 0}" 
+    name = var.ecr_details.registry_name
+    image_tag_mutability = "IMMUTABLE"
+    image_scanning_configuration {
+      scan_on_push = var.ecr_details.scan_on_push
+    }
+    tags = {
+      "Name" = var.ecr_details.registry_tags[0]
+      "Environment"  = var.ecr_details.registry_tags[1]
+    }
+}
 
 
 resource "aws_vpc" "eks_vpc" {
@@ -139,14 +139,17 @@ resource "aws_instance" "kubectl" {
       private_key = file("~/.ssh/id_rsa")
     }
     inline = [ 
+      "sudo apt update",
+      "sudo apt install openjdk-11-jdk -y",
       "git clone https://github.com/tarunkumarpendem/scripting.git",
       "cd scripting",
       "sh kubectl.sh",
       "aws eks update-kubeconfig --region us-east-1 --name dev_eks_cluster_For_Dev",
       "kubectl apply -k github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master",
-      "curl -fsSL https://get.docker.com -o get-docker.sh",
-      "sh get-docker.sh",
+      "curl -fsSL https://get.docker.com -o install-docker.sh",
+      "sh install-docker.sh",
       "sudo usermod -aG docker ubuntu",
+      "sudo chmod 777 /var/run/docker.sock",
       "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3",
       "chmod 700 get_helm.sh",
       "./get_helm.sh",

@@ -1,10 +1,10 @@
-# output "ecr_url" {
-#     value = aws_ecr_repository.openmrs_ecr[0].repository_url
-# }
+output "ecr_url" {
+    value = aws_ecr_repository.openmrs_ecr[0].repository_url
+}
 
-# output "ecr_arn" {
-#     value = aws_ecr_repository.openmrs_ecr[0].arn
-# }
+output "ecr_arn" {
+    value = aws_ecr_repository.openmrs_ecr[0].arn
+}
 
 output "vpc_id" {
     value = aws_vpc.eks_vpc[0].id
