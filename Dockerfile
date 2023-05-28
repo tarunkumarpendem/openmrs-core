@@ -27,7 +27,7 @@ LABEL author="Tarun"
 LABEL application="openmrs"
 LABEL tech="java-11"
 ARG branch=openmrs
-RUN git clone https://github.com/openmrs/openmrs-core.git && \
+RUN git clone https://github.com/tarunkumarpendem/openmrs-core.git && \
     cd openmrs-core && \
     git checkout ${branch} && \
     mvn clean package
