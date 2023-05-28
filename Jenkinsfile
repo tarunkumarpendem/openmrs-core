@@ -169,47 +169,47 @@ pipeline{
                 }
             }
         }
-        stage('terraform_vcs'){
-            agent{
-                label 'terraform_agent'
-            }
-            steps{
-                git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
-                    branch: 'openmrs'
-            }
-        }
-        stage('eks_cluster'){
-            agent{
-                label 'terraform_agent'
-            }
-            steps{
-                sh """
-                    cd terraform
-                    terraform init
-                    terraform apply -auto-approve
-                """
-            }
-        } 
-        stage('k8s_vcs'){
-            agent{
-                label 'kubectl_agent'
-            }
-            steps{
-                git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
-                    branch: 'openmrs'
-            }
-        } 
-        stage('deploy'){
-            agent{
-                label 'kubectl_agent'
-            } 
-            steps{
-                sh """
-                    cd Manifests
-                    kubectl apply -f .
-                """  
-            }  
-        }
+        // stage('terraform_vcs'){
+        //     agent{
+        //         label 'terraform_agent'
+        //     }
+        //     steps{
+        //         git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
+        //             branch: 'openmrs'
+        //     }
+        // }
+        // stage('eks_cluster'){
+        //     agent{
+        //         label 'terraform_agent'
+        //     }
+        //     steps{
+        //         sh """
+        //             cd terraform
+        //             terraform init
+        //             terraform apply -auto-approve
+        //         """
+        //     }
+        // } 
+        // stage('k8s_vcs'){
+        //     agent{
+        //         label 'kubectl_agent'
+        //     }
+        //     steps{
+        //         git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
+        //             branch: 'openmrs'
+        //     }
+        // } 
+        // stage('deploy'){
+        //     agent{
+        //         label 'kubectl_agent'
+        //     } 
+        //     steps{
+        //         sh """
+        //             cd Manifests
+        //             kubectl apply -f .
+        //         """  
+        //     }  
+        // }
     }
     post{
         always{
