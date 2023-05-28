@@ -282,6 +282,9 @@ resource "aws_eks_node_group" "eks_node_group1" {
     ec2_ssh_key = var.node_group_details.ssh_key
     source_security_group_ids = [ aws_security_group.eks_security_group[0].id ]
   }
+  update_config {
+    max_unavailable = 1
+  }
   tags = {
     "Name" = var.node_group_details.node_group_tags[0]
     "Environment" = var.node_group_details.node_group_tags[1]
