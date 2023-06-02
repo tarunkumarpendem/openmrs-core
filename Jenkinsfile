@@ -173,11 +173,50 @@ pipeline{
     }
     parameters{
         choice(name: 'Branch_Name', choices: ['dev', 'qa', 'openmrs', 'master'], description: 'Selecting branch to build')
-        choice(name: 'Image_tag_poc', choices: ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10'], description: 'Image tag for dev, qa brancges')
+        choice(name: 'Image_tag_poc', choices: ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10'], description: 'Image tag for dev, qa branches')
         choice(name: 'Image_tag_openmrs', choices: ['uat-1.0', 'uat-1.1', 'uat-1.2', 'uat-1.3', 'uat-1.4', 'uat-1.5', 'uat-1.6', 'uat-1.7', 'uat-1.8', 'uat-1.9', 'uat-1.10'], description: 'Image tag for uat')
         choice(name: 'Image_tag_prod', choices: ['v1.0', 'v-1.1', 'v-1.2', 'v-1.3', 'v-1.4', 'v-1.5', 'v-1.6', 'v-1.7', 'v-1.8', 'v-1.9', 'v-1.10'], description: 'Image tag for prod')
     }
     stages{
+        stage('clone'){
+            agent {
+                label 'build_agent'
+            }
+            steps{
+                git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
+                    branch: "${params.Branch_Name}"
+            }
+        }
+        stage('build and scan'){
+            agent {
+                label 'build_agent'
+            }
+            steps
+                {
+                    withSonarQubeEnv('sonarqube'){
+                        sh "mvn clean install sonar:sonar"
+                }
+            }
+        }
+        stage('archiving the artifacts'){
+            agent {
+                label 'docker_agent'
+            }
+            steps{
+                archiveArtifacts artifacts: '**/*.war',
+                                 allowEmptyArchive: true,
+                                 fingerprint: true,
+                                 onlyIfSuccessful: true
+            }
+        }
+        stage('Junit reports'){
+            agent {
+                label 'docker_agent'
+            }
+            steps{
+                junit '**/surefire-reports/*.xml'
+            }
+        }
         stage('vcs'){
             agent{
                 label 'docker_agent'
@@ -197,49 +236,69 @@ pipeline{
                     def default_image_name_poc = "openmrs-poc"
                     def default_image_name_openmrs = "openmrs-uat"
                     def default_image_name_master = "openmrs-prod"
-                    def default_image_tag = "1.0"
+                    def default_image_tag = "latest"
                     if ( params[ 'Branch_Name' ] == 'dev' ){
                         sh """
-                              docker build -t ${default_image_name_poc}:${default_image_tag} .
-                              docker tag ${default_image_name_poc}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
-                              docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
-                              docker image rm -f ${default_image_name_poc}:${default_image_tag}
-                              docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
-                              docker image ls
-                              echo image build, push and delete is completed successfully in ${params.Branch_Name}
+                            docker build -t ${default_image_name_poc}:${default_image_tag} .
+                            docker tag ${default_image_name_poc}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
+                            docker tag ${default_image_name_poc}:${default_image_tag} ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker scan ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
+                            docker scan ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
+                            docker push ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image rm -f ${default_image_name_poc}:${default_image_tag}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_poc}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image ls
+                            echo image build, push and delete is completed successfully in ${params.Branch_Name}
                         """
                     }
                     else if ( params[ 'Branch_Name' ] == 'qa' ){
                         sh """
-                              docker build -t ${default_image_name_poc}:${default_image_tag} .
-                              docker tag ${default_image_name_poc}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
-                              docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
-                              docker image rm -f ${default_image_name_poc}:${default_image_tag}
-                              docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
-                              docker image ls
-                              echo image build, push and delete is completed successfully in ${params.Branch_Name}
+                            docker build -t ${default_image_name_poc}:${default_image_tag} .
+                            docker tag ${default_image_name_poc}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
+                            docker tag ${default_image_name_poc}:${default_image_tag} ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker scan ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
+                            docker scan ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
+                            docker push ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image rm -f ${default_image_name_poc}:${default_image_tag}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-qa-${BUILD_ID}-${params.Image_tag_poc}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image ls
+                            echo image build, push and delete is completed successfully in ${params.Branch_Name}
                         """
                     }
                     else if ( params[ 'Branch_Name' ] == 'openmrs' ){
                         sh """
-                              docker build -t ${default_image_name_openmrs}:${default_image_tag} .
-                              docker tag ${default_image_name_openmrs}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
-                              docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
-                              docker image rm -f ${default_image_name_openmrs}:${default_image_tag}
-                              docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
-                              docker image ls
-                              echo image build, push and delete is completed successfully in ${params.Branch_Name}
+                            docker build -t ${default_image_name_openmrs}:${default_image_tag} .
+                            docker tag ${default_image_name_openmrs}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
+                            docker tag ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker scan ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
+                            docker scan ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
+                            docekr push ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image rm -f ${default_image_name_openmrs}:${default_image_tag}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_openmrs}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image ls
+                            echo image build, push and delete is completed successfully in ${params.Branch_Name}
                         """
                     }
                     else if ( params[ 'Branch_Name' ] == 'master' ){
                         sh """
-                              docker build -t ${default_image_name_master}:${default_image_tag} .
-                              docker tag ${default_image_name_master}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
-                              docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
-                              docker image rm -f ${default_image_name_master}:${default_image_tag}
-                              docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
-                              docker image ls
-                              echo image build, push and delete is completed successfully in ${params.Branch_Name}
+                            docker build -t ${default_image_name_master}:${default_image_tag} .
+                            docker tag ${default_image_name_master}:${default_image_tag} ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
+                            docker tag ${default_image_name_master}:${default_image_tag} ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker scan ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
+                            docker scan ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker push ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
+                            docker push ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image rm -f ${default_image_name_master}:${default_image_tag}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${params.Branch_Name}-${BUILD_ID}-${params.Image_tag_prod}
+                            docker image rm -f ${ECR_OPENMRS_REPO}:${default_image_tag}
+                            docker image ls
+                            echo image build, push and delete is completed successfully in ${params.Branch_Name}
                         """
                     }
                     else{
@@ -248,47 +307,26 @@ pipeline{
                 }
             }
         }
-        stage('terraform_vcs'){
+        stage('k8s_vcs'){
             agent{
-                label 'terraform_agent'
+                label 'kubectl_agent'
             }
             steps{
                 git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
-                    branch: 'openmrs'
-            }
-        }
-        stage('eks_cluster'){
-            agent{
-                label 'terraform_agent'
-            }
-            steps{
-                sh """
-                    cd terraform
-                    terraform init
-                    terraform apply -auto-approve
-                """
+                    branch: "${params.Branch_Name}"
             }
         } 
-        // stage('k8s_vcs'){
-        //     agent{
-        //         label 'kubectl_agent'
-        //     }
-        //     steps{
-        //         git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
-        //             branch: 'openmrs'
-        //     }
-        // } 
-        // stage('deploy'){
-        //     agent{
-        //         label 'kubectl_agent'
-        //     } 
-        //     steps{
-        //         sh """
-        //             cd Manifests
-        //             kubectl apply -f .
-        //         """  
-        //     }  
-        // }
+        stage('deploy'){
+            agent{
+                label 'kubectl_agent'
+            } 
+            steps{
+                sh """
+                    cd Manifests
+                    kubectl apply -f .
+                """  
+            }  
+        }
     }
     post{
         always{
@@ -306,7 +344,6 @@ pipeline{
                           $env.BUILD_ID"""
         }
         success{
-            //junit '**/surefire-reports/*.xml'
             echo 'build is success'
             mail to: 'tarunkumarpendem22@gmail.com',
                  subject: 'Job summary',

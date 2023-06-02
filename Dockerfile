@@ -20,7 +20,7 @@
 #     git checkout ${branch} && \
 #     mvn package
 
-# #war file location: /openmrs-core/webapp/target/openmrs.war
+# war file location: /openmrs-core/webapp/target/openmrs.war
 # FROM tomcat:8-jdk11
 # ENV MYSQL_DATABASE="mysql-db"
 # ENV MYSQL_ROOT_PASSWORD="rootroot"
@@ -41,10 +41,11 @@ FROM maven:3.8.3-openjdk-11 as build
 LABEL author="Tarun"
 LABEL application="openmrs"
 LABEL tech="java-11"
-ARG branch=openmrs
+# ARG branch=openmrs
+# git checkout ${branch} && \
 RUN git clone https://github.com/tarunkumarpendem/openmrs-core.git && \
     cd openmrs-core && \
-    git checkout ${branch} && \
+   # git checkout ${branch} && \
     mvn clean package
 EXPOSE 8080
 
