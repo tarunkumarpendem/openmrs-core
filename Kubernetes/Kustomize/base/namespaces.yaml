@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  namespace: dev
+spec:
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qa
+  namespace: qa
+spec:
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: uat
+  namespace: uat
+spec:
+
+
+  

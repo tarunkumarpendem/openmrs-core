@@ -1,0 +1,18 @@
+--- 
+bases:
+  - ../../base
+
+namePrefix: prod- 
+
+nameSuffix: -deploy 
+
+namespace: prod
+
+images:
+  - name: ""
+    newName: ""
+    newTag: ""
+
+replicas:
+  - name: ""
+    count: 15

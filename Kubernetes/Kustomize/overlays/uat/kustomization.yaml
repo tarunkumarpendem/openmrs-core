@@ -1,0 +1,18 @@
+--- 
+bases:
+  - ../../base
+
+namePrefix: uat-
+
+nameSuffix: -client
+
+namespace: uat
+
+replicas:
+  - name: ""
+    count: 10
+
+images:
+  - name: ""
+    newName: ""
+    newTag: ""

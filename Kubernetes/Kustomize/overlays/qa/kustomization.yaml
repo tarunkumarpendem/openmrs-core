@@ -1,0 +1,18 @@
+--- 
+bases:
+  - ../../base
+
+replicas:
+  - name: ""
+    count: 6
+
+namespace: qa
+
+namePrefix: qa-
+
+nameSuffix: -testing 
+
+images:
+  - name: ""
+    newName: ""
+    newTag: ""

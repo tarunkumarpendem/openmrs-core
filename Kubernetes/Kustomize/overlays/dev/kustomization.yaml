@@ -1,0 +1,14 @@
+---
+bases:
+  - ../../base
+
+images:
+  - name: ""
+    newName: ""
+    newTag: ""
+
+namePrefix: dev-
+
+nameSuffix: -develop
+
+namespace: dev
