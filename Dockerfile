@@ -50,7 +50,7 @@ RUN git clone https://github.com/tarunkumarpendem/openmrs-core.git && \
 EXPOSE 8080
 
 
-FROM tomcat:8.5.84-jdk11
+FROM tomcat:8.5.89-jdk11
 COPY --from=build /openmrs-core/webapp/target/openmrs.war /usr/local/tomcat/webapps/openmrs.war
 EXPOSE 8080
 CMD [ "catalina.sh", "run" ]
