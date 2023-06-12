@@ -322,10 +322,33 @@ pipeline{
             } 
             steps{
                 sh """
-                    cd Manifests
+                    cd Kubernets/
+                    kubectl apply -f namespaces.yaml
                     kubectl apply -f .
                 """  
             }  
+        }
+        stage('kustomization_vcs'){
+            agent{
+                label 'kubectl_agent'
+            }
+            steps{
+                git url: 'https://github.com/tarunkumarpendem/openmrs-core.git',
+                    branch: "${params.Branch_Name}"
+            }
+        }
+        stage('kustomization'){
+            agent{
+                label 'kubectl_agent'
+            } 
+            steps{
+                sh """
+                    cd Kubernetes/Kustomize/overlays
+                    cd dev/
+                    kubectl apply -k ./
+                """
+            }
+
         }
     }
     post{

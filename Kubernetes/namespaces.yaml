@@ -22,5 +22,13 @@ metadata:
   namespace: uat
 spec:
 
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  namespace: prod
+spec:
+
 
   
